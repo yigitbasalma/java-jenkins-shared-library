@@ -1,9 +1,7 @@
 def call(Map config) {
 
     pipeline {
-        agent {
-            label "auto-devops"
-        }
+        agent any
 
         options {
             buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
