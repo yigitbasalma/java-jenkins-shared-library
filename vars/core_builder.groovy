@@ -8,6 +8,10 @@ def call(Map config) {
             disableConcurrentBuilds()
         }
 
+        tools {
+            maven "Maven 3.9.0"
+        }
+
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
         }
