@@ -9,7 +9,6 @@ def call(Map config) {
         }
 
         tools {
-            jdk "JDK 1.8"
             maven "Maven 3.9.0"
         }
 
