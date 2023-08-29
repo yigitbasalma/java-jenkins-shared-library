@@ -1,12 +1,11 @@
 def call(Map config) {
 
     pipeline {
-        agent {
-            label "auto-devops"
-        }
+        agent {label 'docker-node'}
 
         parameters {
             string(name: 'IMAGE', defaultValue: '', description: '')
+            string(name: 'TARGETS', defaultValue: '', description: '')
         }
 
         stages {
@@ -37,10 +36,14 @@ def call(Map config) {
                 steps {
                     script {
                         // Create config file variable
-                        config.config_file = ".jenkins/buildspec.yaml"
+                        config.config_file = config.containsKey('config_file_path') ? config.config_file_path : ".jenkins/buildspec.yaml"
                         config.b_config = readYaml file: config.config_file
                         config.job_base = sh(
-                            script: "python3 -c 'print(\"${JENKINS_HOME}/jobs/%s\" % \"/jobs/\".join(\"${JOB_NAME}\".split(\"/\")))'",
+                            script: "python3 -c 'print(\"/\".join(\"${JOB_NAME}\".split(\"/\")[:-1]))'",
+                            returnStdout: true
+                        ).trim()
+                        config.job_name = sh(
+                            script: "python3 -c 'print(\"${JOB_NAME}\".split(\"/\")[-1])'",
                             returnStdout: true
                         ).trim()
                         commitID = sh(
@@ -50,15 +53,13 @@ def call(Map config) {
                             returnStdout: true
                         ).trim()
 
-                        // Configure init
-                        config.image = sh(
-                            script: "${config.script_base}/metadata/metadata.py -p ${config.b_config.project.name} -a ${config.b_config.project.name} -e ${config.environment} get --image-id",
-                            returnStdout: true
-                        ).trim()
-
                         // Configure image from params
                         if ( params.containsKey("IMAGE") && params.IMAGE != "" ) {
                             config.image = params.IMAGE
+                        } else {
+                            currentBuild.result = "ABORTED"
+                            buildDescription("Error: You have to set IMAGE_ID parameter for branch deployment.")
+                            error("You have to set 'IMAGE' parameter.")
                         }
 
                         // Set container id global
@@ -67,6 +68,10 @@ def call(Map config) {
                         config.b_config.imageTag = commitID
                         config.b_config.imageLatestTag = "latest"
                         config.commitID = commitID
+
+                        if ( config.b_config.containsKey("sequentialDeploymentMapping") ) {
+                            config.sequential_deployment_mapping = config.b_config.sequentialDeploymentMapping[config.target_branch]
+                        }
                     }
                 }
             }
@@ -78,7 +83,7 @@ def call(Map config) {
                     }
                 }
                 steps {
-                    withCredentials([sshUserPrivateKey(credentialsId: config.scm_credentials_id, keyFileVariable: 'keyfile')]) {
+                    withCredentials([sshUserPrivateKey(credentialsId: config.argocd_credentials_id, keyFileVariable: 'keyfile')]) {
                         script {
                             lib_deployController(
                                 config,
@@ -104,26 +109,18 @@ def call(Map config) {
                         config
                     )
                 }
+
+                withCredentials([string(credentialsId: 'teams-webhook-url', variable: 'URL_WEBHOOK')]) {
+                    office365ConnectorSend webhookUrl: "${URL_WEBHOOK}"
+                }
             }
             success {
                 buildDescription("Container ID: ${env.CONTAINER_IMAGE_ID}")
 
                 script {
-                    if ( config.environment == "production" ) {
-                        withCredentials([usernamePassword(credentialsId: 'jira-automation-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                            sh """
-                            # 629ef1b2451c00006964feb9 => Korcan Özsuer
-                            python3 ${config.script_base}/jira/main.py \
-                             --container_id ${env.CONTAINER_IMAGE_ID} \
-                             --summary "${config.b_config.project.name} Project" \
-                             --server https://trzipco.atlassian.net \
-                             --user $USERNAME \
-                             --apikey $PASSWORD \
-                             --project_key PRODDEP \
-                             --assignee 629ef1b2451c00006964feb9
-                            """
-                        }
-                    }
+                    lib_helper.triggerJob(
+                        config
+                    )
                 }
             }
         }

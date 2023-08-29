@@ -1,19 +1,33 @@
 def call(Map config) {
 
     pipeline {
-        agent any
+        agent {label 'docker-node'}
 
         options {
+            timeout(time: 25, unit: 'MINUTES')
             buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
             disableConcurrentBuilds()
         }
 
-        tools {
-            maven "Maven 3.9.0"
-        }
-
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
+        }
+
+        triggers {
+            GenericTrigger(
+                genericVariables: [
+                    [key: 'REF', value: '$.push.changes[0].old.name'],
+                ],
+                 causeString: 'Triggered by Bıtbucket',
+                 token: 'bitbucket_' + config.sonar_qube_project_key,
+                 printContributedVariables: false,
+                 printPostContent: false,
+                 silentResponse: false,
+                 shouldNotFlattern: false,
+
+                 regexpFilterText: '$REF',
+                 regexpFilterExpression: '^(development|uat)'
+            )
         }
 
         stages {
@@ -44,10 +58,14 @@ def call(Map config) {
                 steps {
                     script {
                         // Create config file variable
-                        config.config_file = ".jenkins/buildspec.yaml"
+                        config.config_file = config.containsKey('config_file_path') ? config.config_file_path : ".jenkins/buildspec.yaml"
                         config.b_config = readYaml file: config.config_file
                         config.job_base = sh(
-                            script: "python3 -c 'print(\"${JENKINS_HOME}/jobs/%s\" % \"/jobs/\".join(\"${JOB_NAME}\".split(\"/\")))'",
+                            script: "python3 -c 'print(\"/\".join(\"${JOB_NAME}\".split(\"/\")[:-1]))'",
+                            returnStdout: true
+                        ).trim()
+                        config.job_name = sh(
+                            script: "python3 -c 'print(\"${JOB_NAME}\".split(\"/\")[-1])'",
                             returnStdout: true
                         ).trim()
 
@@ -64,6 +82,10 @@ def call(Map config) {
                         config.b_config.imageLatestTag = "latest"
 
                         config.commitID = commitID
+
+                        if ( config.b_config.containsKey("sequentialDeploymentMapping") ) {
+                            config.sequential_deployment_mapping = config.b_config.sequentialDeploymentMapping[config.target_branch]
+                        }
                     }
                 }
             }
@@ -108,22 +130,6 @@ def call(Map config) {
                 steps {
                     script {
                         lib_buildController(
-                            config
-                        )
-                    }
-                }
-            }
-
-            stage("Run SonarQube Code Quality") {
-                when {
-                    expression {
-                        return config.b_config.controllers.codeQualityTestController &&
-                            config.b_config.controllers.buildController
-                    }
-                }
-                steps {
-                    script {
-                        lib_codeQualityTestController(
                             config
                         )
                     }
@@ -190,6 +196,10 @@ def call(Map config) {
                         config
                     )
                 }
+
+                withCredentials([string(credentialsId: 'teams-webhook-url', variable: 'URL_WEBHOOK')]) {
+                    office365ConnectorSend webhookUrl: "${URL_WEBHOOK}"
+                }
             }
             success {
                 script {
@@ -197,6 +207,10 @@ def call(Map config) {
                     publisher.publishLastChanges()
                     def htmlDiff = publisher.getHtmlDiff()
                     writeFile file: 'build-diff.html', text: htmlDiff
+
+                    lib_helper.triggerJob(
+                        config
+                    )
                 }
             }
         }
