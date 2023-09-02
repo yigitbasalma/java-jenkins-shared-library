@@ -15,7 +15,7 @@ def call(Map config) {
         mvn -v && \
         mvn clean install \
             -Dproject.version=${config.project_full_version} \
-            ${buildArgs.unique().join(" ")} && \
+            ${buildArgs.unique().join(" ")}
         """
     }
 }
