@@ -1,7 +1,7 @@
 def call(Map config) {
 
     pipeline {
-        agent {label 'docker-node'}
+        agent {label config.agent}
 
         options {
             timeout(time: 25, unit: 'MINUTES')
