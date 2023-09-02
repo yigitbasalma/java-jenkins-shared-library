@@ -10,12 +10,14 @@ def call(Map config) {
             buildArgs.addAll(it.buildArgs)
         }
 
-        sh """
-        cd ${it.path} && \
-        mvn -v && \
-        mvn clean install \
-            -Dproject.version=${config.project_full_version} \
-            ${buildArgs.unique().join(" ")}
-        """
+        withMaven(maven: it.maven) {
+            sh """
+            cd ${it.path} && \
+            mvn -v && \
+            mvn clean install \
+                -Dproject.version=${config.project_full_version} \
+                ${buildArgs.unique().join(" ")}
+            """
+        }
     }
 }
