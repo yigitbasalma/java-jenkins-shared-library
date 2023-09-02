@@ -11,13 +11,11 @@ def call(Map config) {
         }
 
         sh """
+        cd ${it.path} && \
         mvn -v && \
         mvn clean install \
             -Dproject.version=${config.project_full_version} \
             ${buildArgs.unique().join(" ")} && \
-        mvn clean install \
-            -Dproject.version=${config.project_full_version} \
-            ${buildArgs.unique().join(" ")}
         """
     }
 }
