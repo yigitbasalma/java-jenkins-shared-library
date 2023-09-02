@@ -10,14 +10,16 @@ def call(Map config) {
             buildArgs.addAll(it.buildArgs)
         }
 
-        withMaven(maven: it.maven) {
-            sh """
-            cd ${it.path} && \
-            mvn -v && \
-            mvn clean install \
-                -Dproject.version=${config.project_full_version} \
-                ${buildArgs.unique().join(" ")}
-            """
+        withEnv(["JAVA_HOME=${tool it.jdk}", "PATH=${tool it.jdk}/bin:${env.PATH}"]) {
+            withMaven(maven: it.maven) {
+                sh """
+                cd ${it.path} && \
+                mvn -v && \
+                mvn clean install \
+                    -Dproject.version=${config.project_full_version} \
+                    ${buildArgs.unique().join(" ")}
+                """
+            }
         }
     }
 }
