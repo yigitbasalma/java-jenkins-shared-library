@@ -44,15 +44,18 @@ def call(Map config) {
                 stage("Building ${repoName}") {
                     script {
                         try {
-                            sh """
-                            docker build --rm  \
-                                -t ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageTag} \
-                                -t ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageLatestTag} \
-                                ${extraParams.unique().join(" ")} \
-                                ${buildArgs.unique().join(" ")} \
-                                -f ${dockerFilePath} \
-                                ${it.contextPath}
-                            """
+                            withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: "container-artifact-registry", usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
+                                sh """
+                                docker login --username $USERNAME --password $PASSWORD ${container_repository}
+                                docker build --rm  \
+                                    -t ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageTag} \
+                                    -t ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageLatestTag} \
+                                    ${extraParams.unique().join(" ")} \
+                                    ${buildArgs.unique().join(" ")} \
+                                    -f ${dockerFilePath} \
+                                    ${it.contextPath}
+                                """
+                            }
                         } catch (Exception e) {
                             state = sh(
                                 script: """
