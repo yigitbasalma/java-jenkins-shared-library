@@ -11,8 +11,8 @@ def call(Map config) {
         }
 
         withEnv(["JAVA_HOME=${tool it.jdk}"]) {
-            sh "echo \$JAVA_HOME"
             withMaven(maven: it.maven) {
+                sh "echo \$JAVA_HOME"
                 sh """
                 cd ${it.path} && \
                 mvn -v && \
