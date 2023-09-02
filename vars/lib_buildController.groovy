@@ -10,9 +10,8 @@ def call(Map config) {
             buildArgs.addAll(it.buildArgs)
         }
 
-        withEnv(["JAVA_HOME=${tool it.jdk}"]) {
+        withEnv(["JAVA_HOME=${tool it.jdk}/"]) {
             withMaven(maven: it.maven) {
-                sh "echo \$JAVA_HOME"
                 sh """
                 cd ${it.path} && \
                 mvn -v && \
