@@ -85,8 +85,7 @@ def call(Map config) {
                 steps {
                     script {
                         lib_deployController(
-                            config,
-                            keyfile
+                            config
                         )
                     }
                 }
