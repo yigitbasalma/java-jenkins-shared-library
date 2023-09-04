@@ -13,21 +13,23 @@ def call(Map config, String sshKeyFile) {
     }
 
     config.b_config.deploy.each { it ->
-        "${it.type}"(config, config.image, it, sshKeyFile, container_repository)
+        "${it.type}"(config, config.image, it, container_repository)
     }
 }
 
-def argocd(Map config, String image, Map r_config, String sshKeyFile, String containerRepository) {
+def argocd(Map config, String image, Map r_config, String containerRepository) {
     path = "${r_config.path.replace('/{environment}', '')}/{environment}"
 
     if ( config.scope == "branch" ) {
         path = "${r_config.path}/branch/${config.target_branch}"
     }
 
-    // Change image version on argocd repo and push
-    sh """
-    ${config.script_base}/argocd/argocd.py --image "${containerRepository}/${r_config.name}:${image}" -r ${r_config.repo} --application-path ${path} --environment ${config.environment} --key-file "${sshKeyFile}"
-    """
+    withCredentials([sshUserPrivateKey(credentialsId: config.argocd_credentials_id, keyFileVariable: 'sshKeyFile')]) {
+        // Change image version on argocd repo and push
+        sh """
+        ${config.script_base}/argocd/argocd.py --image "${containerRepository}/${r_config.name}:${image}" -r ${r_config.repo} --application-path ${path} --environment ${config.environment} --key-file "${sshKeyFile}"
+        """
+    }
 
     // check auto sync status for environment
     if ( config.b_config.containsKey("argocd")
@@ -47,7 +49,7 @@ def argocd(Map config, String image, Map r_config, String sshKeyFile, String con
     }
 }
 
-def nativeK8s(Map config, String image, Map r_config, String sshKeyFile, String containerRepository) {
+def nativeK8s(Map config, String image, Map r_config, String containerRepository) {
     namespaceSelector = r_config.namespaceSelector
 
     if ( params.containsKey("TARGETS") && params.TARGETS != "" ) {
@@ -64,7 +66,7 @@ def nativeK8s(Map config, String image, Map r_config, String sshKeyFile, String 
     """
 }
 
-def nativeDocker(Map config, String image, Map r_config, String sshKeyFile, String containerRepository) {
+def nativeDocker(Map config, String image, Map r_config, String containerRepository) {
     def dockerArgs = []
 
     if ( r_config.containsKey("port") ) {
