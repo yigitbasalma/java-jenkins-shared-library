@@ -1,4 +1,4 @@
-def call(Map config, String sshKeyFile) {
+def call(Map config) {
     // SSH key file permission
     sh "chmod 600 ${sshKeyFile}"
     container_repository = "${config.container_artifact_repo_address}"
