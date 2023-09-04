@@ -83,7 +83,7 @@ def nativeDocker(Map config, String image, Map r_config, String containerReposit
       sh """
       #!/bin/bash
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
-      docker rm $(docker stop $(docker ps -a -q --filter ancestor=${r_config.name} --format="{{.ID}}")) 2>&1 /dev/null
+      docker rm \$(docker stop \$(docker ps -a -q --filter ancestor=${r_config.name} --format="{{.ID}}")) 2>&1 /dev/null
       docker run -d --name ${r_config.name} ${dockerArgs.unique().join(" ")} ${image}
       exit 0
       << EOF
