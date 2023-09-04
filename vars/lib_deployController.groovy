@@ -77,7 +77,7 @@ def nativeDocker(Map config, String image, Map r_config, String sshKeyFile, Stri
         }
     }
 
-    sshagent([config.remoteHostCredentialID]) {
+    sshagent(credentials: [config.remoteHostCredentialID]) {
       sh """
       #!/bin/bash
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
