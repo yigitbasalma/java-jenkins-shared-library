@@ -63,3 +63,28 @@ def nativeK8s(Map config, String image, Map r_config, String sshKeyFile, String 
         --per-namespace ${r_config.deployThread}
     """
 }
+
+def nativeDocker(Map config, String image, Map r_config, String sshKeyFile, String containerRepository) {
+    def dockerArgs = []
+
+    if ( r_config.containsKey("port") ) {
+        dockerArgs.push("-p ${r_config.port}")
+    }
+
+    if ( r_config.containsKey("env") ) {
+        r_config.env.each { key, val ->
+            dockerArgs.push("-e '${key}=${val}'")
+        }
+    }
+
+    sshagent([r_config.scm_credentialsID]) {
+      sh """
+      #!/bin/bash
+      ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
+      docker rm $(docker stop $(docker ps -a -q --filter ancestor=${r_config.name} --format="{{.ID}}")) 2>&1 /dev/null
+      docker run -d --name ${r_config.name} ${dockerArgs.unique().join(" ")} ${image}
+      exit 0
+      << EOF
+      """
+    }
+}
