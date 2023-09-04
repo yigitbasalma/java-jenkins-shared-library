@@ -80,11 +80,9 @@ def nativeDocker(Map config, String image, Map r_config, String containerReposit
 
     sshagent(credentials: [config.remoteHostCredentialID]) {
       sh """
-      #!/bin/bash
       ssh -o StrictHostKeyChecking=no -p ${config.remoteHostSSHPort} ${config.remoteUser}@${config.remoteHost} << EOF
-docker rm \$(docker stop \$(docker ps --filter name=${r_config.name} --format="{{.ID}}") 2> /dev/null) 2> /dev/null \
-docker run -d --name ${r_config.name} ${dockerArgs.unique().join(" ")} ${containerRepository}/${config.b_config.project.name}:${image} \
-exit 0
+docker rm \$(docker stop \$(docker ps --filter name=${r_config.name} --format="{{.ID}}") 2> /dev/null) 2> /dev/null
+docker run -d --name ${r_config.name} ${dockerArgs.unique().join(" ")} ${containerRepository}/${config.b_config.project.name}:${image}
 EOF
       """
     }
