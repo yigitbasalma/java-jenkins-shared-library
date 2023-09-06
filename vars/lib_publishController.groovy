@@ -7,9 +7,11 @@ def call(Map config) {
                     find ${WORKSPACE} -name "*.jar" -exec \
                         curl -v -u ${USERNAME}:${PASSWORD} \
                         -X POST "${reg.url}/service/rest/v1/components?repository=${reg.repo}" \
-                        -F "maven2.asset1=@{}" \
-                        -F maven2.asset1.extension=jar \
-                        -F maven2.generate-pom=true \\;
+                        -F "maven2.asset1=@${it.path}/pom.xml" \
+                        -F "maven2.asset1.extension=pom"
+                        -F "maven2.asset2=@{}" \
+                        -F maven2.asset2.extension=jar \
+                        -F maven2.generate-pom=false \\;
                     """
                 }
             }
