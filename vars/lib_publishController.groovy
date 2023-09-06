@@ -9,7 +9,7 @@ def call(Map config) {
                         -X POST "${reg.url}/service/rest/v1/components?repository=${reg.repo}" \
                         -F "maven2.asset1=@{}" \
                         -F maven2.asset1.extension=jar \
-                        -F maven2.generate-pom=true
+                        -F maven2.generate-pom=true \\;
                     """
                 }
             }
