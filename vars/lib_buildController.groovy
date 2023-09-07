@@ -11,11 +11,17 @@ def call(Map config) {
         }
 
         withEnv(["JAVA_HOME=${tool it.jdk}"]) {
+            def type = "install"
+
+            if ( it.containsKey("type") ) {
+                type = it.type
+            }
+
             withMaven(maven: it.maven) {
                 sh """
                 cd ${it.path} && \
                 mvn -v && \
-                mvn clean install \
+                mvn clean ${type} \
                     -Dproject.version=${config.project_full_version} \
                     ${buildArgs.unique().join(" ")}
                 """

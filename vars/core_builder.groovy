@@ -136,22 +136,6 @@ def call(Map config) {
                 }
             }
 
-            stage("Publish Artifact") {
-                when {
-                    expression {
-                        return config.b_config.controllers.publishController && 
-                            config.b_config.controllers.buildController
-                    }
-                }
-                steps {
-                    script {
-                        lib_publishController(
-                            config
-                        )
-                    }
-                }
-            }
-
             stage("Build and Publish as a Container") {
                 when {
                     expression {
