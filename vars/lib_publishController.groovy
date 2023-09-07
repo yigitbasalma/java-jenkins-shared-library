@@ -5,7 +5,7 @@ def call(Map config) {
                 withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: reg.id, usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
                     sh """
                     find ${WORKSPACE} -name "*.jar" -exec \
-                        curl -v -u ${USERNAME}:${PASSWORD} \
+                        curl -s -u ${USERNAME}:${PASSWORD} \
                         -X POST "${reg.url}/service/rest/v1/components?repository=${reg.repo}" \
                         -F "maven2.asset1=@${it.path}/pom.xml" \
                         -F "maven2.asset1.extension=pom" \
