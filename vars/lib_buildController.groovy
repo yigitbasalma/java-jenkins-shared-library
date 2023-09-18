@@ -21,7 +21,7 @@ def call(Map config) {
                 sh """
                 cd ${it.path} && \
                 mvn -v && \
-                mvn clean ${type} \
+                mvn clean -Dmaven.test.skip=true ${type} \
                     -Dproject.version=${config.project_full_version} \
                     ${buildArgs.unique().join(" ")}
                 """
