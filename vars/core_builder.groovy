@@ -45,7 +45,7 @@ def call(Map config) {
                 steps {
                     checkout scm: [
                         $class: "GitSCM",
-                        branches: [[name: "refs/heads/${config.target_branch}"]],
+                        branches: [[name: config.target_branch.startsWith("refs") ? config.target_branch : "refs/heads/${config.target_branch}"]],
                         submoduleCfg: [],
                         userRemoteConfigs: [
                             config.scm_global_config
