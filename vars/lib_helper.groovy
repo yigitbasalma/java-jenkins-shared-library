@@ -63,6 +63,6 @@ def triggerJob(Map config) {
             build job: "${config.job_base}/${next_job_name}", propagate: false, wait: false, parameters: [string(name: 'IMAGE', value: config.b_config.imageTag)]
         }
     } catch (Exception e) {
-        echo "No job found for trigger."
+        echo "No job found for trigger. ${e}"
     }
 }
