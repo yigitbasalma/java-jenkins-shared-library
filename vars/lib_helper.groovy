@@ -39,7 +39,8 @@ def configureInit(Map config) {
         "dev",
         "uat",
         "devops",
-        "refs/heads/devops"
+        "refs/heads/devops",
+        "refs/heads/devops-preprod",
     ]
 }
 
