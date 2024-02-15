@@ -108,7 +108,8 @@ def compose(Map config, String image, Map r_config, String containerRepository) 
 
       sh """
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
-docker compose -f /opt/docker-compose/${composeFileName} up -d
+cd /opt/docker-compose && \
+docker compose -f ${composeFileName} up -d
 EOF
       """
     }
