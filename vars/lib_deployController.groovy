@@ -102,14 +102,14 @@ def compose(Map config, String image, Map r_config, String containerRepository) 
 
     sshagent(credentials: [config.remoteHostCredentialID]) {
       sh """
-      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose && \
+      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose/.env && \
       scp -o StrictHostKeyChecking=no ${r_config.file} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose
       """
 
       sh """
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
 cd /opt/docker-compose && \
-docker compose -f ${composeFileName} up -d
+docker compose --env-file .env -f ${composeFileName} up -d
 EOF
       """
     }
