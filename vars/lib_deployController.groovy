@@ -96,6 +96,7 @@ def compose(Map config, String image, Map r_config, String containerRepository) 
     ).trim()
 
     sh """
+    echo >> ${envFile} && \
     echo IMAGE="${containerRepository}/${config.b_config.project.name}:${image}" >> ${envFile} && \
     echo CONTAINER_NAME="${r_config.name}" >> ${envFile}
     """
