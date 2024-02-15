@@ -80,9 +80,35 @@ def nativeDocker(Map config, String image, Map r_config, String containerReposit
 
     sshagent(credentials: [config.remoteHostCredentialID]) {
       sh """
-      ssh -o StrictHostKeyChecking=no -p ${config.remoteHostSSHPort} ${config.remoteUser}@${config.remoteHost} << EOF
+      ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
 docker rm -f ${r_config.name} 2> /dev/null
 docker run -d --name ${r_config.name} ${dockerArgs.unique().join(" ")} ${containerRepository}/${config.b_config.project.name}:${image}
+EOF
+      """
+    }
+}
+
+def compose(Map config, String image, Map r_config, String containerRepository) {
+    def envFile = r_config.env_file.replace("{environment}", config.environment)
+    def composeFileName = sh(
+        script: "python3 -c 'print(\"${r_config.file}\".split(\"/\")[-1])'",
+        returnStdout: true
+    ).trim()
+
+    sh """
+    echo IMAGE="${containerRepository}/${config.b_config.project.name}:${image}" >> ${envFile} && \
+    echo CONTAINER_NAME="${r_config.name}" >> ${envFile}
+    """
+
+    sshagent(credentials: [config.remoteHostCredentialID]) {
+      sh """
+      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose && \
+      scp -o StrictHostKeyChecking=no ${r_config.file} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose
+      """
+
+      sh """
+      ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
+docker compose -f /opt/docker-compose/${composeFileName} up -d
 EOF
       """
     }
