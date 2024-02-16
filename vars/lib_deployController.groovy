@@ -110,7 +110,7 @@ def compose(Map config, String image, Map r_config, String containerRepository) 
       sh """
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
 cd /opt/docker-compose && \
-docker compose --env-file .env --remove-orphans --force-recreate -f ${composeFileName} up -d
+docker compose --env-file .env -f ${composeFileName} up -d --remove-orphans --force-recreate
 EOF
       """
     }
