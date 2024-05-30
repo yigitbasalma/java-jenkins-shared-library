@@ -1,5 +1,8 @@
 def call(Map config) {
 
+    def triggerRef = config.containsKey('trigger_ref') ? config.trigger_ref : '$.push.changes[0].old.name'
+    def triggerRegexpFilter = config.containsKey('trigger_regexp_filter') ? config.trigger_regexp_filter : '^(development|uat)'
+
     if ( config.containsKey("github_hook") && config.github_hook ) {
         properties([pipelineTriggers([githubPush()])])
     }
@@ -20,9 +23,9 @@ def call(Map config) {
         triggers {
             GenericTrigger(
                 genericVariables: [
-                    [key: 'REF', value: '$.push.changes[0].old.name'],
+                    [key: 'REF', value: triggerRef],
                 ],
-                 causeString: 'Triggered by Bıtbucket',
+                 causeString: 'Triggered by Remote Event',
                  token: 'bitbucket_' + config.sonar_qube_project_key,
                  printContributedVariables: false,
                  printPostContent: false,
@@ -30,7 +33,7 @@ def call(Map config) {
                  shouldNotFlattern: false,
 
                  regexpFilterText: '$REF',
-                 regexpFilterExpression: '^(development|uat)'
+                 regexpFilterExpression: triggerRegexpFilter
             )
         }
 
