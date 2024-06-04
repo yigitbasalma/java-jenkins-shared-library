@@ -53,6 +53,11 @@ def call(Map config) {
                             returnStdout: true
                         ).trim()
 
+                        // Manipulate the job name if starts with ref/heads(generic_webhook)
+                        if (config.job_name.startsWith("refs/heads/")) {
+                            config.job_name = config.job_name.replaceFirst('^refs/heads/', '')
+                        }
+
                         // Configure image from params
                         if ( params.containsKey("IMAGE") && params.IMAGE != "" ) {
                             config.image = params.IMAGE
