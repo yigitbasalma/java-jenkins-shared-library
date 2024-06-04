@@ -41,6 +41,12 @@ def configureInit(Map config) {
         "devops",
         "devops-preprod",
     ]
+
+    if (config.github_hook && env.REF.contains('refs/heads/')) {
+        def branchName = env.REF.replaceFirst('^refs/heads/', '')
+        sh "echo 'Branch name: ${branchName}'"
+        env.REF = branchName
+    }
 }
 
 def configureBranchDeployment(Map config, String sshKeyFile) {
