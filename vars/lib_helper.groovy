@@ -15,7 +15,13 @@ def configureInit(Map config) {
         config.scope = "branch"
     }
 
-    if ( env.REF ) {
+    if (env.REF) {
+        // Manipulate the env.REF to strip 'refs/heads/' prefix if it exists
+        if (config.github_hook && env.REF.contains('refs/heads/')) {
+            def branchName = env.REF.replaceFirst('^refs/heads/', '')
+            echo "Branch name: ${branchName}"
+            env.REF = branchName
+        }
         config.target_branch = env.REF
     }
 
