@@ -16,6 +16,10 @@ def call(Map config) {
             disableConcurrentBuilds()
         }
 
+        environment {
+            MAVEN_OPTS = "-Dmaven.repo.local=$HOME/.m2/repository"
+        }
+
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
         }
