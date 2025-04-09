@@ -83,12 +83,16 @@ def call(Map config) {
                             """,
                             returnStdout: true
                         ).trim()
+                        randomContainerID = sh(
+                            script: "python3 -c 'import uuid; print(str(uuid.uuid4())\".split(\"-\")[0]))'",
+                            returnStdout: true
+                        ).trim()
 
                         // Define variable for container build
                         config.b_config.imageTag = commitID
                         config.b_config.imageLatestTag = "latest"
 
-                        config.commitID = commitID
+                        config.commitID = commitID + "R" + randomContainerID
 
                         if ( config.b_config.containsKey("sequentialDeploymentMapping") ) {
                             config.sequential_deployment_mapping = config.b_config.sequentialDeploymentMapping[config.target_branch]
