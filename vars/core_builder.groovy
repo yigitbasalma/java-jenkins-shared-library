@@ -12,7 +12,7 @@ def call(Map config) {
 
         options {
             timeout(time: 25, unit: 'MINUTES')
-            buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
+            buildDiscarder(logRotator(numToKeepStr: '25', artifactNumToKeepStr: '25'))
             disableConcurrentBuilds()
         }
 
