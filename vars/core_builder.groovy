@@ -84,7 +84,7 @@ def call(Map config) {
                             returnStdout: true
                         ).trim()
                         randomContainerID = sh(
-                            script: "python3 -c 'import uuid; print(str(uuid.uuid4()).split(\"-\")[0]))'",
+                            script: "python3 -c 'import uuid; print(str(uuid.uuid4()).split(\"-\")[0])'",
                             returnStdout: true
                         ).trim()
 
