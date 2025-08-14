@@ -11,7 +11,7 @@ def call(Map config) {
         agent {label config.agent}
 
         options {
-            timeout(time: 25, unit: 'MINUTES')
+            timeout(time: 45, unit: 'MINUTES')
             buildDiscarder(logRotator(numToKeepStr: '25', artifactNumToKeepStr: '25'))
             disableConcurrentBuilds()
         }
